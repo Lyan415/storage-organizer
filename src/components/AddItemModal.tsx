@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { X, Upload, Camera } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import { supabase } from '../lib/supabase';
-// import type { Item } from '../types';
+import { uploadImage } from '../lib/imageUpload';
 
 interface AddItemModalProps {
     isOpen: boolean;
@@ -26,32 +25,6 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose }) =
         }
     };
 
-
-    const uploadImage = async (file: File) => {
-        try {
-            const user = useStore.getState().user;
-            if (!user) throw new Error('User not authenticated');
-
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-            const filePath = `${fileName}`;
-
-            const { error: uploadError } = await supabase.storage
-                .from('item-images')
-                .upload(filePath, file);
-
-            if (uploadError) throw uploadError;
-
-            const { data } = supabase.storage
-                .from('item-images')
-                .getPublicUrl(filePath);
-
-            return data.publicUrl;
-        } catch (error) {
-            console.error('Error uploading image:', error);
-            throw error;
-        }
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -29,6 +29,10 @@ interface StoreState {
     moveItem: (itemId: string, newParentId: string | null) => Promise<void>;
     updateItem: (itemId: string, updates: Partial<Omit<Item, 'id' | 'createdAt' | 'projectId'>>) => Promise<void>;
 
+    // Share Actions
+    createShare: (itemId: string, projectId: string) => Promise<string>;
+    deleteShare: (shareId: string) => Promise<void>;
+
     // Navigation
     setViewMode: (mode: ViewMode) => void;
     navigateToFolder: (folderId: string | null) => void;
@@ -268,6 +272,31 @@ export const useStore = create<StoreState>((set, get) => ({
         if (error) {
             console.error('Error updating item:', error);
             set({ items: previousItems });
+        }
+    },
+
+    createShare: async (itemId, projectId) => {
+        const token = crypto.randomUUID().replace(/-/g, '').substring(0, 16);
+        const { data, error } = await supabase
+            .from('shares')
+            .insert({ token, item_id: itemId, project_id: projectId })
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error creating share:', error);
+            throw error;
+        }
+        return data.token;
+    },
+
+    deleteShare: async (shareId) => {
+        const { error } = await supabase
+            .from('shares')
+            .delete()
+            .eq('id', shareId);
+        if (error) {
+            console.error('Error deleting share:', error);
         }
     },
 

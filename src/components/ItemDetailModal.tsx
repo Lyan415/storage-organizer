@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { X, MapPin, Trash2, Move, ChevronRight, Home, Edit2 } from 'lucide-react';
+import { X, MapPin, Trash2, Move, ChevronRight, Home, Edit2, Share2, Check, Link } from 'lucide-react';
 import type { Item } from '../types';
 import { useStore } from '../store/useStore';
-import { supabase } from '../lib/supabase';
+import { uploadImage } from '../lib/imageUpload';
 import { FolderPicker } from './FolderPicker';
 
 interface ItemDetailModalProps {
@@ -11,13 +11,15 @@ interface ItemDetailModalProps {
 }
 
 export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose }) => {
-    const { getPath, navigateToFolder, setViewMode, deleteItem, moveItem, updateItem } = useStore();
+    const { getPath, navigateToFolder, setViewMode, deleteItem, moveItem, updateItem, createShare } = useStore();
     const [isMovePickerOpen, setIsMovePickerOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editName, setEditName] = useState('');
     const [editNote, setEditNote] = useState('');
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [shareUrl, setShareUrl] = useState<string | null>(null);
+    const [shareCopied, setShareCopied] = useState(false);
 
     // Reset state when item changes or modal opens
     React.useEffect(() => {
@@ -26,6 +28,8 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose 
             setEditNote(item.note || '');
             setPreviewUrl(null);
             setIsEditing(false);
+            setShareUrl(null);
+            setShareCopied(false);
         }
     }, [item]);
 
@@ -52,37 +56,30 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose 
         onClose();
     };
 
+    const handleShare = async () => {
+        if (shareUrl) {
+            await navigator.clipboard.writeText(shareUrl);
+            setShareCopied(true);
+            setTimeout(() => setShareCopied(false), 2000);
+            return;
+        }
+        try {
+            const token = await createShare(item.id, item.projectId);
+            const url = `${window.location.origin}${import.meta.env.BASE_URL}share/${token}`;
+            setShareUrl(url);
+            await navigator.clipboard.writeText(url);
+            setShareCopied(true);
+            setTimeout(() => setShareCopied(false), 2000);
+        } catch {
+            alert('Failed to create share link.');
+        }
+    };
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             const url = URL.createObjectURL(file);
             setPreviewUrl(url);
-        }
-    };
-
-    const uploadImage = async (file: File) => {
-        try {
-            const user = useStore.getState().user;
-            if (!user) throw new Error('User not authenticated');
-
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-            const filePath = `${fileName}`;
-
-            const { error: uploadError } = await supabase.storage
-                .from('item-images')
-                .upload(filePath, file);
-
-            if (uploadError) throw uploadError;
-
-            const { data } = supabase.storage
-                .from('item-images')
-                .getPublicUrl(filePath);
-
-            return data.publicUrl;
-        } catch (error) {
-            console.error('Error uploading image:', error);
-            throw error;
         }
     };
 
@@ -200,6 +197,13 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose 
                                         title="Edit Item"
                                     >
                                         <Edit2 size={20} />
+                                    </button>
+                                    <button
+                                        onClick={handleShare}
+                                        className={`p-2 rounded-full transition-colors ${shareCopied ? 'text-green-600 bg-green-50' : 'text-gray-600 hover:bg-gray-100'}`}
+                                        title={shareUrl ? 'Copy share link' : 'Create share link'}
+                                    >
+                                        {shareCopied ? <Check size={20} /> : shareUrl ? <Link size={20} /> : <Share2 size={20} />}
                                     </button>
                                     <button
                                         onClick={() => setIsMovePickerOpen(true)}

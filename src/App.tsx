@@ -4,12 +4,14 @@ import { AuthGuard } from './components/auth/AuthGuard';
 import { LoginView } from './components/auth/LoginView';
 import { ProjectListView } from './views/ProjectListView';
 import { ProjectDetailView } from './views/ProjectDetailView';
+import { SharedView } from './views/SharedView';
 
 function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route path="/login" element={<LoginView />} />
+        <Route path="/share/:token" element={<SharedView />} />
 
         <Route
           path="/"

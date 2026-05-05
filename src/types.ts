@@ -21,4 +21,12 @@ export interface UserProfile {
     email?: string;
 }
 
+export interface Share {
+    id: string;
+    token: string;
+    itemId: string;
+    projectId: string;
+    createdAt: string;
+}
+
 export type ViewMode = 'hierarchy' | 'flat';
