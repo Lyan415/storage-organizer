@@ -45,17 +45,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             </main>
 
             {/* Bottom Navigation */}
-            <nav className="flex-shrink-0 bg-white pb-safe">
-                {/* Add button row */}
-                <div className="flex justify-center border-t border-gray-100 pt-2">
-                    <button
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 shadow-lg shadow-blue-600/30 transition-transform active:scale-95 text-white"
-                    >
-                        <Plus size={26} />
-                    </button>
-                </div>
-                {/* Nav buttons row */}
+            <nav className="flex-shrink-0 border-t border-gray-100 bg-white">
                 <div className="flex h-12 items-center justify-around px-2">
                     <button
                         onClick={() => setViewMode('hierarchy')}
@@ -66,6 +56,13 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                     >
                         <Network size={22} />
                         <span className="text-[10px] font-medium">Browse</span>
+                    </button>
+
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-600 shadow-md shadow-blue-600/30 transition-transform active:scale-95 text-white"
+                    >
+                        <Plus size={24} />
                     </button>
 
                     <button
