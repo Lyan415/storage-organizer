@@ -40,7 +40,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             </header>
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto p-4 pb-24 scrollbar-hide">
+            <main className="flex-1 overflow-y-auto p-4 pb-36 scrollbar-hide">
                 {children}
             </main>
 
