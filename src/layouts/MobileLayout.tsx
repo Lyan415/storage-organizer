@@ -44,35 +44,38 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 {children}
             </main>
 
-            {/* Bottom Navigation - part of flex flow, not fixed */}
-            <nav className="flex-shrink-0 border-t border-gray-100 bg-white pb-safe relative">
-                <div className="flex h-16 items-center justify-around px-2">
+            {/* Bottom Navigation */}
+            <nav className="flex-shrink-0 bg-white pb-safe">
+                {/* Add button row */}
+                <div className="flex justify-center border-t border-gray-100 pt-2">
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 shadow-lg shadow-blue-600/30 transition-transform active:scale-95 text-white"
+                    >
+                        <Plus size={26} />
+                    </button>
+                </div>
+                {/* Nav buttons row */}
+                <div className="flex h-12 items-center justify-around px-2">
                     <button
                         onClick={() => setViewMode('hierarchy')}
                         className={clsx(
-                            "flex flex-1 flex-col items-center justify-center gap-1 py-1 transition-colors",
+                            "flex flex-1 flex-col items-center justify-center gap-0.5 py-1 transition-colors",
                             viewMode === 'hierarchy' ? "text-blue-600" : "text-gray-400"
                         )}
                     >
-                        <Network size={24} />
+                        <Network size={22} />
                         <span className="text-[10px] font-medium">Browse</span>
-                    </button>
-
-                    <button
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 shadow-lg shadow-blue-600/30 transition-transform active:scale-95 text-white -mt-10"
-                    >
-                        <Plus size={28} />
                     </button>
 
                     <button
                         onClick={() => setViewMode('flat')}
                         className={clsx(
-                            "flex flex-1 flex-col items-center justify-center gap-1 py-1 transition-colors",
+                            "flex flex-1 flex-col items-center justify-center gap-0.5 py-1 transition-colors",
                             viewMode === 'flat' ? "text-blue-600" : "text-gray-400"
                         )}
                     >
-                        <LayoutGrid size={24} />
+                        <LayoutGrid size={22} />
                         <span className="text-[10px] font-medium">Grid</span>
                     </button>
                 </div>
