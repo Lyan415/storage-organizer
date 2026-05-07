@@ -1,36 +1,71 @@
-import React, { useState } from 'react';
-import { Folder, Image as ImageIcon, ChevronRight, Home } from 'lucide-react';
+import React, { useState, useRef, useCallback } from 'react';
+import { Folder, Image as ImageIcon, ChevronRight, Home, Edit2 } from 'lucide-react';
 import type { Item } from '../types';
 import { twMerge } from 'tailwind-merge';
 
 interface ItemCardProps {
     item: Item;
     onClick: (item: Item) => void;
+    onLongPress?: (item: Item) => void;
     variant?: 'grid' | 'list';
-    // Enhanced props for Search/Flat view results
     showPath?: boolean;
-    path?: Item[]; // Full path from root
+    path?: Item[];
     onPathClick?: (folderId: string | null) => void;
 }
 
 export const ItemCard: React.FC<ItemCardProps> = ({
     item,
     onClick,
+    onLongPress,
     variant = 'grid',
     showPath = false,
     path = [],
     onPathClick
 }) => {
     const [hasError, setHasError] = useState(false);
+    const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const didLongPress = useRef(false);
+
+    const handleTouchStart = useCallback(() => {
+        if (!onLongPress) return;
+        didLongPress.current = false;
+        longPressTimer.current = setTimeout(() => {
+            didLongPress.current = true;
+            onLongPress(item);
+        }, 500);
+    }, [item, onLongPress]);
+
+    const handleTouchEnd = useCallback(() => {
+        if (longPressTimer.current) {
+            clearTimeout(longPressTimer.current);
+            longPressTimer.current = null;
+        }
+    }, []);
+
+    const handleClick = () => {
+        if (didLongPress.current) {
+            didLongPress.current = false;
+            return;
+        }
+        onClick(item);
+    };
+
+    const handleEditClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onLongPress?.(item);
+    };
 
     const handlePathClick = (e: React.MouseEvent, folderId: string | null) => {
-        e.stopPropagation(); // Prevent opening item detail
+        e.stopPropagation();
         onPathClick?.(folderId);
     };
 
     return (
         <div
-            onClick={() => onClick(item)}
+            onClick={handleClick}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchEnd}
             className={twMerge(
                 "group relative overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all active:scale-95",
                 variant === 'grid' ? "aspect-square flex flex-col" : "flex items-center p-3 h-auto min-h-[5rem]"
@@ -65,9 +100,20 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                     </div>
                 )}
 
-                {/* Type Indicator Overlay */}
-                <div className="absolute top-2 right-2 z-20 rounded-full bg-black/50 p-1 text-white backdrop-blur-sm">
-                    <Folder size={12} />
+                {/* Action Overlays */}
+                <div className="absolute top-2 right-2 z-20 flex gap-1">
+                    {onLongPress && (
+                        <button
+                            onClick={handleEditClick}
+                            className="rounded-full bg-black/50 p-1.5 text-white backdrop-blur-sm hover:bg-black/70 transition-colors"
+                            title="Edit"
+                        >
+                            <Edit2 size={12} />
+                        </button>
+                    )}
+                    <div className="rounded-full bg-black/50 p-1 text-white backdrop-blur-sm">
+                        <Folder size={12} />
+                    </div>
                 </div>
             </div>
 

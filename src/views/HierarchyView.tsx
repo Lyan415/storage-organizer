@@ -1,19 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { ItemCard } from '../components/ItemCard';
 import { Breadcrumbs } from '../components/Breadcrumbs';
+import { ItemDetailModal } from '../components/ItemDetailModal';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import type { Item } from '../types';
 
 export const HierarchyView: React.FC = () => {
     const { currentFolderId, getItemsInFolder, navigateToFolder, navigateBack, deleteItem } = useStore();
+    const [detailItem, setDetailItem] = useState<Item | null>(null);
 
     const items = getItemsInFolder(currentFolderId);
     const currentItem = useStore(state => state.getItem(currentFolderId || ''));
 
     const handleItemClick = (item: Item) => {
-        // In hierarchy mode, clicking an item enters it (treats it as a folder)
         navigateToFolder(item.id);
+    };
+
+    const handleItemLongPress = (item: Item) => {
+        setDetailItem(item);
     };
 
     const handleDelete = () => {
@@ -58,10 +63,16 @@ export const HierarchyView: React.FC = () => {
                             key={item.id}
                             item={item}
                             onClick={handleItemClick}
+                            onLongPress={handleItemLongPress}
                         />
                     ))}
                 </div>
             )}
+
+            <ItemDetailModal
+                item={detailItem}
+                onClose={() => setDetailItem(null)}
+            />
         </div>
     );
 };
