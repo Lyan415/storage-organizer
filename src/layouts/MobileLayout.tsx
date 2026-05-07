@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { LayoutGrid, Network, Plus, Search } from 'lucide-react';
+import { LayoutGrid, Network, Plus, Search, LogOut } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { supabase } from '../lib/supabase';
 import { AddItemModal } from '../components/AddItemModal';
 import { SearchModal } from '../components/SearchModal';
 import { clsx } from 'clsx';
@@ -21,12 +22,21 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 <h1 className="text-lg font-bold text-gray-900">
                     {viewMode === 'hierarchy' ? 'My Space' : 'All Items'}
                 </h1>
-                <button
-                    onClick={() => setIsSearchOpen(true)}
-                    className="rounded-full p-2 text-gray-600 hover:bg-gray-100"
-                >
-                    <Search size={22} />
-                </button>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setIsSearchOpen(true)}
+                        className="rounded-full p-2 text-gray-600 hover:bg-gray-100"
+                    >
+                        <Search size={22} />
+                    </button>
+                    <button
+                        onClick={() => supabase.auth.signOut()}
+                        className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-red-500"
+                        title="登出"
+                    >
+                        <LogOut size={20} />
+                    </button>
+                </div>
             </header>
 
             {/* Main Content Area */}
