@@ -20,6 +20,8 @@ interface StoreState {
     // Project Actions
     fetchProjects: () => Promise<void>;
     createProject: (name: string) => Promise<void>;
+    updateProject: (projectId: string, name: string) => Promise<void>;
+    deleteProject: (projectId: string) => Promise<void>;
     setCurrentProject: (projectId: string | null) => void;
 
     // Item Actions
@@ -100,6 +102,34 @@ export const useStore = create<StoreState>((set, get) => ({
                 createdAt: data.created_at
             };
             set((state) => ({ projects: [newProject, ...state.projects] }));
+        }
+    },
+
+    updateProject: async (projectId, name) => {
+        const prev = get().projects;
+        set(state => ({
+            projects: state.projects.map(p => p.id === projectId ? { ...p, name } : p)
+        }));
+        const { error } = await supabase
+            .from('projects')
+            .update({ name })
+            .eq('id', projectId);
+        if (error) {
+            console.error('Error updating project:', error);
+            set({ projects: prev });
+        }
+    },
+
+    deleteProject: async (projectId) => {
+        const prev = get().projects;
+        set(state => ({ projects: state.projects.filter(p => p.id !== projectId) }));
+        const { error } = await supabase
+            .from('projects')
+            .delete()
+            .eq('id', projectId);
+        if (error) {
+            console.error('Error deleting project:', error);
+            set({ projects: prev });
         }
     },
 
