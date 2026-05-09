@@ -78,7 +78,7 @@ export const ProjectListView = () => {
                                 e.stopPropagation();
                                 setEditingProject({ id: project.id, name: project.name });
                             }}
-                            className="absolute top-2 right-2 p-1.5 rounded-full bg-gray-100 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-200 z-10"
+                            className="absolute top-2 right-2 p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 z-10"
                         >
                             <Edit2 size={14} />
                         </button>
