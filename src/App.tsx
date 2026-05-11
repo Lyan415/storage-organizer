@@ -5,6 +5,7 @@ import { LoginView } from './components/auth/LoginView';
 import { ProjectListView } from './views/ProjectListView';
 import { ProjectDetailView } from './views/ProjectDetailView';
 import { SharedView } from './views/SharedView';
+import { ApiGuidePage } from './views/ApiGuidePage';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginView />} />
         <Route path="/share/:token" element={<SharedView />} />
+        <Route path="/api-guide" element={<ApiGuidePage />} />
 
         <Route
           path="/"

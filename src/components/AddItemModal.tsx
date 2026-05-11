@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { X, Upload, Camera } from 'lucide-react';
+import { X, Upload, Camera, Sparkles, Loader2 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { uploadImage } from '../lib/imageUpload';
+import { getAIConfig } from '../lib/aiConfig';
+import { recognizeImage } from '../lib/aiRecognition';
 
 interface AddItemModalProps {
     isOpen: boolean;
@@ -13,22 +15,40 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose }) =
     const [name, setName] = useState('');
     const [note, setNote] = useState('');
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isRecognizing, setIsRecognizing] = useState(false);
+    const [aiError, setAiError] = useState<string | null>(null);
+
+    const hasAIConfig = !!getAIConfig();
 
     if (!isOpen) return null;
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            const url = URL.createObjectURL(file);
-            setPreviewUrl(url);
+            setSelectedFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+            setAiError(null);
         }
     };
 
+    const handleAIRecognize = async () => {
+        if (!selectedFile) return;
+        setIsRecognizing(true);
+        setAiError(null);
+        try {
+            const result = await recognizeImage(selectedFile);
+            setName(result);
+        } catch (err: any) {
+            setAiError(err.message || 'AI 辨識失敗');
+        } finally {
+            setIsRecognizing(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         setIsSubmitting(true);
 
         const finalName = name.trim() || `Item ${new Date().toLocaleString('zh-TW', { hour12: false })}`;
@@ -36,17 +56,12 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose }) =
         try {
             let imageUrl = '';
 
-            // If there is a file selected (we need to track the file, not just the preview URL)
-            // Need to update state to store the File object
-            const fileInput = document.getElementById('add-item-file-input') as HTMLInputElement;
-            if (fileInput?.files?.[0]) {
-                imageUrl = await uploadImage(fileInput.files[0]);
+            if (selectedFile) {
+                imageUrl = await uploadImage(selectedFile);
             } else if (previewUrl) {
-                // If previewUrl exists but no file (shouldn't happen in add mode unless we preset stuff), keep it or use placeholder
                 imageUrl = previewUrl;
             } else {
-                imageUrl = `https://images.unsplash.com/photo-${['1618331835717-801e976710b2', '1586105251261-72a756497a11', '1589829085413-56de8ae18c73'][Math.floor(Math.random() * 3)]
-                    }?auto=format&fit=crop&q=80&w=800`;
+                imageUrl = `https://images.unsplash.com/photo-${['1618331835717-801e976710b2', '1586105251261-72a756497a11', '1589829085413-56de8ae18c73'][Math.floor(Math.random() * 3)]}?auto=format&fit=crop&q=80&w=800`;
             }
 
             await addItem({
@@ -65,6 +80,8 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose }) =
             setName('');
             setNote('');
             setPreviewUrl(null);
+            setSelectedFile(null);
+            setAiError(null);
             onClose();
         }
     };
@@ -98,11 +115,38 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose }) =
                             id="add-item-file-input"
                             type="file"
                             accept="image/*"
-                            capture="environment" // Favors rear camera on mobile
+                            capture="environment"
                             onChange={handleFileChange}
                             className="hidden"
                         />
                     </label>
+
+                    {/* AI Recognition Button */}
+                    {hasAIConfig && selectedFile && (
+                        <div className="space-y-1">
+                            <button
+                                type="button"
+                                onClick={handleAIRecognize}
+                                disabled={isRecognizing}
+                                className="w-full flex items-center justify-center gap-2 rounded-lg border border-amber-300 bg-amber-50 py-2.5 text-sm font-medium text-amber-700 hover:bg-amber-100 active:scale-95 disabled:opacity-50 transition-all"
+                            >
+                                {isRecognizing ? (
+                                    <>
+                                        <Loader2 size={16} className="animate-spin" />
+                                        AI 辨識中...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles size={16} />
+                                        AI 辨識物件
+                                    </>
+                                )}
+                            </button>
+                            {aiError && (
+                                <p className="text-xs text-red-500 text-center">{aiError}</p>
+                            )}
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Name</label>
@@ -112,7 +156,6 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose }) =
                             onChange={(e) => setName(e.target.value)}
                             placeholder="e.g. Red Box (Leave empty for auto-name)"
                             className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-                        // autoFocus removed for better mobile UX (keyboard pop)
                         />
                     </div>
 
