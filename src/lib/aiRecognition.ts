@@ -72,7 +72,7 @@ async function recognizeWithClaude(apiKey: string, base64: string, mimeType: str
             'anthropic-dangerous-direct-browser-access': 'true',
         },
         body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-3-5-sonnet-20241022',
             max_tokens: 300,
             messages: [{
                 role: 'user',
@@ -85,7 +85,8 @@ async function recognizeWithClaude(apiKey: string, base64: string, mimeType: str
     });
     if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error?.message || `Claude API error: ${res.status}`);
+        const msg = err.error?.message || JSON.stringify(err) || `Claude API error: ${res.status}`;
+        throw new Error(msg);
     }
     const data = await res.json();
     return data.content[0].text.trim();
