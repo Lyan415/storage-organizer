@@ -85,8 +85,7 @@ async function recognizeWithClaude(apiKey: string, base64: string, mimeType: str
     });
     if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        const msg = err.error?.message || JSON.stringify(err) || `Claude API error: ${res.status}`;
-        throw new Error(msg);
+        throw new Error(`Claude ${res.status}: ${err.error?.type || 'unknown'} - ${err.error?.message || JSON.stringify(err)}`);
     }
     const data = await res.json();
     return data.content[0].text.trim();
