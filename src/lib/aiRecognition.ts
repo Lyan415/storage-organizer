@@ -72,7 +72,7 @@ async function recognizeWithClaude(apiKey: string, base64: string, mimeType: str
             'anthropic-dangerous-direct-browser-access': 'true',
         },
         body: JSON.stringify({
-            model: 'claude-3-5-sonnet-20241022',
+            model: 'claude-haiku-4-5-20251001',
             max_tokens: 300,
             messages: [{
                 role: 'user',
