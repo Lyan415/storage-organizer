@@ -13,7 +13,7 @@ async function fileToBase64(file: File): Promise<string> {
     });
 }
 
-const PROMPT = '請辨識這張照片中的所有物件，只輸出物件名稱，用空格分隔。例如：手錶 手機 鑰匙。不要輸出任何其他文字。';
+const PROMPT = '請辨識這張照片中的所有物件，只輸出物件名稱，用空格分隔。例如：手錶 手機 鑰匙。請使用繁體中文或英文，不要使用簡體中文。不要輸出任何其他文字。';
 
 async function recognizeWithOpenAI(apiKey: string, base64: string, mimeType: string): Promise<string> {
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
