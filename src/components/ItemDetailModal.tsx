@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { X, MapPin, Trash2, Move, ChevronRight, Home, Edit2, Share2, Check, Link } from 'lucide-react';
+import { X, MapPin, Trash2, Move, ChevronRight, Home, Edit2, Share2, Check, Link, Sparkles, Loader2 } from 'lucide-react';
 import type { Item } from '../types';
 import { useStore } from '../store/useStore';
 import { uploadImage } from '../lib/imageUpload';
+import { getAIConfig } from '../lib/aiConfig';
+import { recognizeImage } from '../lib/aiRecognition';
 import { FolderPicker } from './FolderPicker';
 
 interface ItemDetailModalProps {
@@ -20,6 +22,9 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [shareUrl, setShareUrl] = useState<string | null>(null);
     const [shareCopied, setShareCopied] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isRecognizing, setIsRecognizing] = useState(false);
+    const [aiError, setAiError] = useState<string | null>(null);
 
     // Reset state when item changes or modal opens
     React.useEffect(() => {
@@ -30,6 +35,8 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose 
             setIsEditing(false);
             setShareUrl(null);
             setShareCopied(false);
+            setSelectedFile(null);
+            setAiError(null);
         }
     }, [item]);
 
@@ -78,8 +85,23 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            const url = URL.createObjectURL(file);
-            setPreviewUrl(url);
+            setSelectedFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+            setAiError(null);
+        }
+    };
+
+    const handleAIRecognize = async () => {
+        if (!selectedFile) return;
+        setIsRecognizing(true);
+        setAiError(null);
+        try {
+            const result = await recognizeImage(selectedFile);
+            setEditName(result);
+        } catch (err: any) {
+            setAiError(err.message || 'AI 辨識失敗');
+        } finally {
+            setIsRecognizing(false);
         }
     };
 
@@ -222,6 +244,32 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose 
                                 </div>
                             )}
                         </div>
+
+                        {isEditing && selectedFile && getAIConfig() && (
+                            <div className="mt-2 space-y-1">
+                                <button
+                                    type="button"
+                                    onClick={handleAIRecognize}
+                                    disabled={isRecognizing}
+                                    className="w-full flex items-center justify-center gap-2 rounded-lg border border-amber-300 bg-amber-50 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 active:scale-95 disabled:opacity-50 transition-all"
+                                >
+                                    {isRecognizing ? (
+                                        <>
+                                            <Loader2 size={16} className="animate-spin" />
+                                            AI 辨識中...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles size={16} />
+                                            AI 辨識物件
+                                        </>
+                                    )}
+                                </button>
+                                {aiError && (
+                                    <p className="text-xs text-red-500 text-center">{aiError}</p>
+                                )}
+                            </div>
+                        )}
 
                         {isEditing ? (
                             <div className="mt-2">
