@@ -115,7 +115,6 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ isOpen, onClose }) =
                             id="add-item-file-input"
                             type="file"
                             accept="image/*"
-                            capture="environment"
                             onChange={handleFileChange}
                             className="hidden"
                         />
