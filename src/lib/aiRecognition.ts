@@ -1,4 +1,5 @@
 import { getAIConfig, type AIProvider } from './aiConfig';
+import imageCompression from 'browser-image-compression';
 
 async function fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -101,8 +102,17 @@ export async function recognizeImage(file: File): Promise<string> {
     const config = getAIConfig();
     if (!config) throw new Error('尚未設定 AI API Key');
 
-    const base64 = await fileToBase64(file);
-    const mimeType = file.type || 'image/jpeg';
+    let processedFile = file;
+    if (file.size > 4 * 1024 * 1024) {
+        processedFile = await imageCompression(file, {
+            maxSizeMB: 3.5,
+            maxWidthOrHeight: 2048,
+            useWebWorker: true,
+        });
+    }
+
+    const base64 = await fileToBase64(processedFile);
+    const mimeType = processedFile.type || 'image/jpeg';
 
     return recognizers[config.provider](config.apiKey, base64, mimeType);
 }
