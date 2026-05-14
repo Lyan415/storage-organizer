@@ -102,14 +102,12 @@ export async function recognizeImage(file: File): Promise<string> {
     const config = getAIConfig();
     if (!config) throw new Error('尚未設定 AI API Key');
 
-    let processedFile = file;
-    if (file.size > 4 * 1024 * 1024) {
-        processedFile = await imageCompression(file, {
-            maxSizeMB: 3.5,
-            maxWidthOrHeight: 2048,
-            useWebWorker: true,
-        });
-    }
+    // base64 encoding adds ~33% size, so compress to 3MB to stay under 5MB API limit
+    const processedFile = await imageCompression(file, {
+        maxSizeMB: 3,
+        maxWidthOrHeight: 2048,
+        useWebWorker: true,
+    });
 
     const base64 = await fileToBase64(processedFile);
     const mimeType = processedFile.type || 'image/jpeg';
